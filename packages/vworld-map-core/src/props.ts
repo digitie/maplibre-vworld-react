@@ -19,6 +19,12 @@ export interface VWorldMapViewProps {
   apiKey: string;
   initialCenter?: [number, number]; // [lng, lat]
   initialZoom?: number;
+  /** Minimum zoom level. */
+  minZoom?: number;
+  /** Maximum zoom level (clamped to the layer's max at runtime). */
+  maxZoom?: number;
+  /** Restrict panning to these bounds (`{ ne: [lng,lat], sw: [lng,lat] }`). */
+  maxBounds?: { ne: [number, number]; sw: [number, number] };
   mapType?: VWorldMapType;
   /**
    * Rewrite each VWorld tile URL before the map requests it — e.g. route

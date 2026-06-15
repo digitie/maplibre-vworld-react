@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import type { FeatureCollection } from 'geojson';
 import type { CameraState } from './cameraTypes';
+import type { VWorldErrorLike } from './redact';
 
 export type VWorldMapType = "base" | "satellite" | "hybrid" | "gray" | "midnight";
 
@@ -25,6 +26,9 @@ export interface VWorldMapViewProps {
   onMapPress?: (coord: [number, number]) => void;
   onFeaturePress?: (feature: unknown) => void;
   onCameraChanged?: (camera: CameraState) => void;
+  /** Fired when the map fails to load. The native event carries no URL, so use
+   * {@link redactVWorldUrl} on any URL the app logs itself. */
+  onError?: (error: VWorldErrorLike) => void;
   style?: any; // For container styles
   children?: ReactNode;
 }

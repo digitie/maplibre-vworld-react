@@ -29,6 +29,7 @@ export const VWorldMapView: React.FC<VWorldMapViewProps> = ({
   onMapPress,
   onFeaturePress,
   onCameraChanged,
+  onError,
   style,
   children
 }) => {
@@ -80,6 +81,7 @@ export const VWorldMapView: React.FC<VWorldMapViewProps> = ({
         attributionPosition={{ bottom: 8, right: 8 }}
         onPress={handlePress}
         onRegionDidChange={handleRegionDidChange}
+        onDidFailLoadingMap={() => onError?.({ message: 'map-load-failed' })}
       >
         <Camera
           ref={cameraRef}

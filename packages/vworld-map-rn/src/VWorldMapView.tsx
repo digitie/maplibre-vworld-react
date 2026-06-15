@@ -30,6 +30,7 @@ export const VWorldMapView: React.FC<VWorldMapViewProps> = ({
   onFeaturePress,
   onCameraChanged,
   onError,
+  tileUrlTransform,
   style,
   children
 }) => {
@@ -37,8 +38,20 @@ export const VWorldMapView: React.FC<VWorldMapViewProps> = ({
   const cameraRef = useRef<CameraRef>(null);
 
   const mapStyle = useMemo(() => {
-    return createVWorldStyle(apiKey, mapType);
-  }, [apiKey, mapType]);
+    const style = createVWorldStyle(apiKey, mapType);
+    if (!tileUrlTransform) return style;
+    // Let the app rewrite tile URLs (proxy / token injection) so the raw key
+    // never reaches the native tile loader.
+    return {
+      ...style,
+      sources: Object.fromEntries(
+        Object.entries(style.sources).map(([sourceId, source]) => [
+          sourceId,
+          { ...source, tiles: source.tiles.map(tileUrlTransform) },
+        ]),
+      ),
+    };
+  }, [apiKey, mapType, tileUrlTransform]);
 
   const maxZoomLevel = LAYER_PRESETS[mapType]?.maxZoom || 19;
 

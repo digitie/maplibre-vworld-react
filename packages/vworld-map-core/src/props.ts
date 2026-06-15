@@ -20,6 +20,13 @@ export interface VWorldMapViewProps {
   initialCenter?: [number, number]; // [lng, lat]
   initialZoom?: number;
   mapType?: VWorldMapType;
+  /**
+   * Rewrite each VWorld tile URL before the map requests it — e.g. route
+   * requests through your own proxy that injects a short-lived token, so the
+   * raw `apiKey` is never bundled into client tile requests or native logs.
+   * Pass an empty/placeholder `apiKey` and inject the real credential here.
+   */
+  tileUrlTransform?: (url: string) => string;
   markers?: MarkerItem[];
   geojson?: FeatureCollection;
   selectedFeatureId?: string;

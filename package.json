@@ -11,6 +11,7 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
+    "e2e": "turbo run test:e2e",
     "clean": "turbo run clean"
   },
   "devDependencies": {

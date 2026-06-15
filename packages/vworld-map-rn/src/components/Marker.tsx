@@ -12,8 +12,16 @@ export interface MarkerProps {
    * React Native and the underlying MapLibre Marker use `onPress`.
    */
   onClick?: () => void;
-  /** Visual selected state for the built-in pin (larger, accent color). */
+  /** Built-in pin color. Ignored when `children` is provided. @default 'red' */
+  color?: string;
+  /** Visual selected state for the built-in pin (larger, white ring). */
   selected?: boolean;
+  /** Visual highlighted state (softer emphasis than selected). */
+  highlighted?: boolean;
+  /** Stacking order among markers (passed to the marker view's zIndex). */
+  zIndex?: number;
+  /** Accessibility label; also marks the marker as an accessible button. */
+  ariaLabel?: string;
   children?: React.ReactElement;
 }
 
@@ -22,26 +30,41 @@ export const Marker: React.FC<MarkerProps> = ({
   lngLat,
   onPress,
   onClick,
+  color = 'red',
   selected = false,
+  highlighted = false,
+  zIndex,
+  ariaLabel,
   children,
 }) => {
   const handlePress = onPress ?? onClick;
-  const size = selected ? 28 : 20;
+  // selected / highlighted change size + ring but keep the consumer's color
+  // (parity with the web Marker, which keeps color and adds scale/shadow).
+  const size = selected ? 28 : highlighted ? 24 : 20;
+  const borderWidth = selected ? 3 : highlighted ? 2 : 0;
   const content: React.ReactElement = children ?? (
     <View
       style={{
         width: size,
         height: size,
-        backgroundColor: selected ? '#1A73E8' : 'red',
+        backgroundColor: color,
         borderRadius: size / 2,
-        borderWidth: selected ? 3 : 0,
+        borderWidth,
         borderColor: 'white',
       }}
     />
   );
 
   return (
-    <MapLibreMarker id={id} lngLat={lngLat} onPress={handlePress}>
+    <MapLibreMarker
+      id={id}
+      lngLat={lngLat}
+      onPress={handlePress}
+      style={zIndex !== undefined ? { zIndex } : undefined}
+      accessible={ariaLabel ? true : undefined}
+      accessibilityRole={ariaLabel ? 'button' : undefined}
+      accessibilityLabel={ariaLabel}
+    >
       {content}
     </MapLibreMarker>
   );

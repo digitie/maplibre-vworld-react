@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useMemo } from 'react';
+import React, { useRef, useCallback, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { View, StyleSheet } from 'react-native';
 import type { NativeSyntheticEvent } from 'react-native';
 import {
@@ -18,10 +18,26 @@ import {
 } from 'vworld-map-core';
 import { Marker as VWorldMarker } from './components/Marker';
 
-export const VWorldMapView: React.FC<VWorldMapViewProps> = ({
+/** Imperative handle for programmatic camera control via a ref. */
+export interface VWorldMapHandle {
+  /** Animate to a center (and optional zoom). */
+  flyTo(target: { center: [number, number]; zoom?: number; durationMs?: number }): void;
+  /** Fit the camera to bounds. */
+  fitBounds(
+    bounds: { ne: [number, number]; sw: [number, number] },
+    options?: { paddingPx?: number; durationMs?: number },
+  ): void;
+  /** Animate to a zoom level. */
+  zoomTo(zoom: number, durationMs?: number): void;
+}
+
+export const VWorldMapView = forwardRef<VWorldMapHandle, VWorldMapViewProps>(({
   apiKey,
   initialCenter = [126.9780, 37.5665], // Seoul City Hall default
   initialZoom = 14,
+  minZoom,
+  maxZoom,
+  maxBounds,
   mapType = 'base',
   markers = [],
   geojson,
@@ -33,9 +49,24 @@ export const VWorldMapView: React.FC<VWorldMapViewProps> = ({
   tileUrlTransform,
   style,
   children
-}) => {
+}, ref) => {
   const mapRef = useRef<MapRef>(null);
   const cameraRef = useRef<CameraRef>(null);
+
+  useImperativeHandle(ref, () => ({
+    flyTo: ({ center, zoom, durationMs }) =>
+      cameraRef.current?.flyTo({
+        center,
+        ...(zoom !== undefined ? { zoom } : {}),
+        ...(durationMs !== undefined ? { duration: durationMs } : {}),
+      }),
+    fitBounds: ({ ne, sw }, options) =>
+      cameraRef.current?.fitBounds([sw[0], sw[1], ne[0], ne[1]], {
+        ...(options?.durationMs !== undefined ? { duration: options.durationMs } : {}),
+      }),
+    zoomTo: (zoom, durationMs) =>
+      cameraRef.current?.zoomTo(zoom, durationMs !== undefined ? { duration: durationMs } : undefined),
+  }), []);
 
   const mapStyle = useMemo(() => {
     const style = createVWorldStyle(apiKey, mapType);
@@ -53,7 +84,11 @@ export const VWorldMapView: React.FC<VWorldMapViewProps> = ({
     };
   }, [apiKey, mapType, tileUrlTransform]);
 
-  const maxZoomLevel = LAYER_PRESETS[mapType]?.maxZoom || 19;
+  const layerMaxZoom = LAYER_PRESETS[mapType]?.maxZoom || 19;
+  const maxZoomLevel = maxZoom !== undefined ? Math.min(maxZoom, layerMaxZoom) : layerMaxZoom;
+  const maxBoundsFlat: [number, number, number, number] | undefined = maxBounds
+    ? [maxBounds.sw[0], maxBounds.sw[1], maxBounds.ne[0], maxBounds.ne[1]]
+    : undefined;
 
   const handlePress = useCallback((event: NativeSyntheticEvent<PressEvent>) => {
     if (onMapPress) {
@@ -102,7 +137,9 @@ export const VWorldMapView: React.FC<VWorldMapViewProps> = ({
             center: initialCenter,
             zoom: initialZoom,
           }}
+          minZoom={minZoom}
           maxZoom={maxZoomLevel}
+          maxBounds={maxBoundsFlat}
         />
         
         {/* Render markers via the package's own Marker so selectedFeatureId
@@ -135,7 +172,9 @@ export const VWorldMapView: React.FC<VWorldMapViewProps> = ({
       </Map>
     </View>
   );
-};
+});
+
+VWorldMapView.displayName = 'VWorldMapView';
 
 const styles = StyleSheet.create({
   container: {

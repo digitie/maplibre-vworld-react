@@ -1,0 +1,28 @@
+{
+  "name": "vworld-map-rn",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "dependencies": {
+    "vworld-map-core": "*"
+  },
+  "peerDependencies": {
+    "react": ">=19.1.0",
+    "react-native": ">=0.80.0",
+    "@maplibre/maplibre-react-native": "^11.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/react": "~19.2.2"
+  }
+}

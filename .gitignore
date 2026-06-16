@@ -4,3 +4,4 @@ dist/
 .turbo/
 apps/expo-example/.expo/
 apps/web-example/dist/
+.claude/settings.local.json

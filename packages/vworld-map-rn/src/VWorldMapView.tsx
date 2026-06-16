@@ -143,13 +143,19 @@ export const VWorldMapView = forwardRef<VWorldMapHandle, VWorldMapViewProps>(({
         />
         
         {/* Render markers via the package's own Marker so selectedFeatureId
-            and the shared pin styling apply (parity with the web adapter). */}
+            and the shared pin styling apply (parity with the web adapter).
+            Forward the per-marker pin props (color/highlighted/zIndex/ariaLabel)
+            so the `markers` convenience prop has full Marker parity (#21). */}
         {markers.map((marker) => (
           <VWorldMarker
             key={marker.id}
             id={marker.id}
             lngLat={marker.coordinate}
-            selected={marker.id === selectedFeatureId}
+            color={marker.color}
+            selected={marker.selected ?? marker.id === selectedFeatureId}
+            highlighted={marker.highlighted}
+            zIndex={marker.zIndex}
+            ariaLabel={marker.ariaLabel}
             onPress={() => onFeaturePress?.(marker)}
           />
         ))}

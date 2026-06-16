@@ -9,6 +9,17 @@ export interface MarkerItem {
   id: string;
   coordinate: [number, number]; // [lng, lat]
   title?: string;
+  /** Built-in pin color (forwarded to the built-in `Marker`). @default 'red' */
+  color?: string;
+  /** Render this pin in the selected state (larger, white ring). Combined with
+   * `VWorldMapViewProps.selectedFeatureId` — either marks the pin selected. */
+  selected?: boolean;
+  /** Render this pin in the highlighted state (softer emphasis than selected). */
+  highlighted?: boolean;
+  /** Stacking order among markers. */
+  zIndex?: number;
+  /** Accessibility label; also marks the pin as an accessible button. */
+  ariaLabel?: string;
   // Arbitrary user-defined fields are allowed but typed `unknown` so they
   // must be narrowed before use — this stops the index signature from
   // widening `id`/`coordinate`/`title` to `any` or swallowing typos.

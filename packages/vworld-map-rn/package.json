@@ -14,10 +14,10 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "test": "jest",
-    "prepublishOnly": "npm run clean && npm run build"
+    "prepack": "npm run build"
   },
   "dependencies": {
-    "vworld-map-core": "*"
+    "vworld-map-core": "^1.0.0"
   },
   "peerDependencies": {
     "@maplibre/maplibre-react-native": "^11.0.0",

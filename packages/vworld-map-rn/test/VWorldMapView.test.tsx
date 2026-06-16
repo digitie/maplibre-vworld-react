@@ -48,6 +48,30 @@ describe('RN VWorldMapView', () => {
     expect(ringed).toHaveLength(1);
   });
 
+  it('forwards the markers item color to the built-in pin (#21)', () => {
+    const r = create(
+      <VWorldMapView
+        apiKey="k"
+        markers={[
+          { id: 'a', coordinate: [127, 37], color: '#1E88E5' },
+          { id: 'b', coordinate: [128, 38] },
+        ]}
+      />,
+    );
+    const pins = hosts(r, 'View').filter((v) => v.props.style && 'backgroundColor' in v.props.style);
+    // the colored marker uses its color; the other keeps the default red.
+    expect(pins.some((v) => v.props.style.backgroundColor === '#1E88E5')).toBe(true);
+    expect(pins.some((v) => v.props.style.backgroundColor === 'red')).toBe(true);
+  });
+
+  it('treats a markers item `selected:true` as selected regardless of selectedFeatureId (#21)', () => {
+    const r = create(
+      <VWorldMapView apiKey="k" markers={[{ id: 'a', coordinate: [127, 37], selected: true }]} />,
+    );
+    const pins = hosts(r, 'View').filter((v) => v.props.style && 'backgroundColor' in v.props.style);
+    expect(pins.filter((v) => v.props.style.borderWidth > 0)).toHaveLength(1);
+  });
+
   it('wires the native press event to onMapPress', () => {
     const onMapPress = jest.fn();
     const r = create(<VWorldMapView apiKey="k" onMapPress={onMapPress} />);

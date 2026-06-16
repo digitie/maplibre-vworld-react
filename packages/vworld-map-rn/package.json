@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "sideEffects": false,
   "scripts": {
     "build": "tsc",
@@ -11,16 +13,17 @@
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
+    "test": "jest",
     "prepublishOnly": "npm run clean && npm run build"
   },
   "dependencies": {
     "vworld-map-core": "*"
   },
   "peerDependencies": {
-    "react": ">=19.1.0",
-    "react-native": ">=0.80.0",
     "@maplibre/maplibre-react-native": "^11.0.0",
-    "expo": ">=54"
+    "expo": ">=54",
+    "react": ">=19.1.0",
+    "react-native": ">=0.80.0"
   },
   "peerDependenciesMeta": {
     "expo": {
@@ -28,7 +31,13 @@
     }
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
-    "@types/react": "~19.2.2"
+    "@babel/preset-env": "^7.29.7",
+    "@babel/preset-react": "^7.29.7",
+    "@babel/preset-typescript": "^7.29.7",
+    "@types/react": "~19.2.2",
+    "babel-jest": "^30.4.1",
+    "jest": "^30.4.2",
+    "react-test-renderer": "^19.2.3",
+    "typescript": "^5.0.0"
   }
 }

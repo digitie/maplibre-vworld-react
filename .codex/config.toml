@@ -1,0 +1,8 @@
+# Codex project-scoped config (merged over ~/.codex/config.toml for trusted projects).
+# Adds the filesystem MCP server scoped to this repo. The "." allowed-directory
+# resolves to the directory Codex is launched from (the repo root), keeping the
+# committed config portable across machines/OSes.
+[mcp_servers.filesystem]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-filesystem", "."]
+startup_timeout_sec = 20

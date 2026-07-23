@@ -611,25 +611,43 @@ export const VWorldMapView: React.FC<VWorldMapViewProps> = ({
   const lastBboxRef = useRef(bbox);
   const pendingBboxRef = useRef<[number, number, number, number] | null>(null);
 
+  // Both branches below clear their pending ref *before* triggering the imperative map call
+  // (`fitBounds`/`jumpTo`), not after. `jumpTo` (and non-animated `fitBounds`, which routes
+  // through the same instant path) fires `movestart`/`move`/`moveend` synchronously and
+  // *unconditionally* — MapLibre does not skip the event sequence even when the target camera
+  // equals the current one (verified against maplibre-gl's own `Camera.jumpTo` source). Since
+  // `map.on('moveend', handleMoveEnd)` calls straight back into this function, a `moveend`
+  // fired mid-call re-enters `applyPendingCameraIfAny` on the same synchronous call stack. If
+  // the ref were still holding the value that call is *in the middle of applying*, the
+  // reentrant call would see it as fresh, reissue the same imperative call, and recurse without
+  // bound until the stack overflows (`RangeError: Maximum call stack size exceeded`, observed
+  // in kor-travel-geo-ui's `/debug/reverse` map, `cameraTransition="instant"`). This reproduces
+  // on a single isolated click, not only rapid double-clicks — the recursion has no dependency
+  // on click count, only on the ref being read while still stale. Clearing it first makes the
+  // reentrant call's `if (!pending) return;` (or the bbox equivalent) terminate the recursion
+  // immediately, since by definition the update it would have applied already happened.
   const applyPendingCameraIfAny = useCallback((map: MapLibreMap): void => {
     const { cameraTransition: transition } = cameraOptionsRef.current;
-    
+
     if (pendingBboxRef.current) {
       if (map.isMoving() || map.isEasing()) return;
       const b = pendingBboxRef.current;
+      pendingBboxRef.current = null;
+      lastBboxRef.current = b;
       map.fitBounds(b, {
         padding: 50,
         animate: transition !== 'instant',
         duration: transition === 'smooth' ? 300 : undefined
       });
-      lastBboxRef.current = b;
-      pendingBboxRef.current = null;
       return;
     }
 
     const pending = pendingCameraRef.current;
     if (!pending) return;
     if (map.isMoving() || map.isEasing()) return;
+
+    pendingCameraRef.current = null;
+    lastCameraRef.current = pending;
 
     const { animateCameraChanges: animate, flyToOptions: options } = cameraOptionsRef.current;
     if (transition === 'instant' || !animate) {
@@ -639,8 +657,6 @@ export const VWorldMapView: React.FC<VWorldMapViewProps> = ({
     } else {
       map.easeTo({ ...options, ...pending, duration: 300 });
     }
-    lastCameraRef.current = pending;
-    pendingCameraRef.current = null;
   }, []);
 
   useEffect(() => {

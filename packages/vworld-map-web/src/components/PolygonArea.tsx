@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useEffect, useLayoutEffect, useRef } from 'react';
-import type maplibregl from 'maplibre-gl';
-import { useMap, useEvent } from '../store/hooks';
-import { PolygonAreaInputSchema } from '../schemas';
+import type * as maplibregl from 'maplibre-gl';
+import { useMap, useEvent } from '../store/hooks.js';
+import { PolygonAreaInputSchema } from '../schemas.js';
 
 type PolygonGeoJSON =
   | GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon>

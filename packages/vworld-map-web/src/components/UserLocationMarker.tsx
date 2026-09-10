@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Marker } from './Marker';
-import { PulsingMarker, type PulsingMarkerProps } from './PulsingMarker';
+import { Marker } from './Marker.js';
+import { PulsingMarker, type PulsingMarkerProps } from './PulsingMarker.js';
 
 export interface UserLocationMarkerProps extends Omit<PulsingMarkerProps, 'children'> {
   /** User's position as `[longitude, latitude]`. */

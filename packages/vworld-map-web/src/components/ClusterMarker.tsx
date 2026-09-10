@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useCallback, useMemo } from 'react';
-import { Marker, type MarkerProps } from './Marker';
-import { useEvent } from '../store/hooks';
+import { Marker, type MarkerProps } from './Marker.js';
+import { useEvent } from '../store/hooks.js';
 
 export interface ClusterMarkerProps extends Omit<MarkerProps, 'children' | 'onClick'> {
   count: number;

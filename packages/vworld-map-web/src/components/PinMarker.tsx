@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Marker, type MarkerProps } from './Marker';
+import { Marker, type MarkerProps } from './Marker.js';
 
 export interface PinMarkerProps extends Omit<MarkerProps, 'children' | 'anchor'> {
   color?: string;

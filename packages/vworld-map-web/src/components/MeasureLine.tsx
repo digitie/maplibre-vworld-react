@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { RouteLine } from './RouteLine';
-import { Marker } from './Marker';
-import { haversine, formatDistance } from '../utils/distance';
+import { RouteLine } from './RouteLine.js';
+import { Marker } from './Marker.js';
+import { haversine, formatDistance } from '../utils/distance.js';
 
 export interface MeasureLineProps {
   /**

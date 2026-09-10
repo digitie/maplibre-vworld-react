@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { PinMarker, type PinMarkerProps } from './PinMarker';
+import { PinMarker, type PinMarkerProps } from './PinMarker.js';
 
 export interface MakiMarkerProps extends Omit<PinMarkerProps, 'icon'> {
   /** Maki icon name (without `.svg`), e.g. `'restaurant'`, `'park'`. */

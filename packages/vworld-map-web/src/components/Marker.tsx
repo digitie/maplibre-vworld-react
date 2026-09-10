@@ -2,10 +2,10 @@
 
 import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import maplibregl from 'maplibre-gl';
-import { useMap, useEvent } from '../store/hooks';
-import type { MapInteractionContext } from '../VWorldMapView.web';
-import type { MarkerAnchor } from '../types';
+import * as maplibregl from 'maplibre-gl';
+import { useMap, useEvent } from '../store/hooks.js';
+import type { MapInteractionContext } from '../VWorldMapView.web.js';
+import type { MarkerAnchor } from '../types.js';
 
 let globalMarkerZIndex = 1000;
 

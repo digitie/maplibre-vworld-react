@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { Marker, type MarkerProps } from './Marker';
-import { useMapSelector } from '../store/hooks';
+import { Marker, type MarkerProps } from './Marker.js';
+import { useMapSelector } from '../store/hooks.js';
 
 export interface PriceItem {
   label?: string;

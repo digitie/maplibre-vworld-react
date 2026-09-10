@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Marker, type MarkerProps } from './Marker';
+import { Marker, type MarkerProps } from './Marker.js';
 
 export interface RoutePointMarkerProps extends Omit<MarkerProps, 'children'> {
   label: string | number;

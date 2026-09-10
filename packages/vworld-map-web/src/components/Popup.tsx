@@ -2,8 +2,8 @@
 
 import React, { useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import maplibregl from 'maplibre-gl';
-import { useMap, useEvent } from '../store/hooks';
+import * as maplibregl from 'maplibre-gl';
+import { useMap, useEvent } from '../store/hooks.js';
 
 let globalPopupZIndex = 1;
 // Ceiling so the bring-to-front counter cannot climb unbounded over a long

@@ -3,8 +3,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import useSupercluster from 'use-supercluster';
 import type Supercluster from 'supercluster';
-import { useMap } from '../store/hooks';
-import { ClusterMarker } from './ClusterMarker';
+import { useMap } from '../store/hooks.js';
+import { ClusterMarker } from './ClusterMarker.js';
 
 /**
  * Standard supercluster point Feature with the original consumer data merged

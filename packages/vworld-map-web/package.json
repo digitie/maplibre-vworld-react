@@ -1,6 +1,7 @@
 {
   "name": "vworld-map-web",
   "version": "1.0.0",
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": ["dist"],
@@ -19,7 +20,7 @@
     "zod": "^4.4.3"
   },
   "peerDependencies": {
-    "maplibre-gl": "*",
+    "maplibre-gl": "^6.0.0",
     "react": "*",
     "react-dom": "*"
   },

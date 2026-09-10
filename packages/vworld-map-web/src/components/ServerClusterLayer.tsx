@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useCallback } from 'react';
-import type maplibregl from 'maplibre-gl';
-import { type Bounds } from '../schemas';
-import { ClusterMarker } from './ClusterMarker';
-import { useMap } from '../store/hooks';
+import type * as maplibregl from 'maplibre-gl';
+import { type Bounds } from '../schemas.js';
+import { ClusterMarker } from './ClusterMarker.js';
+import { useMap } from '../store/hooks.js';
 
 export interface ServerClusterPoint {
   id: string | number;

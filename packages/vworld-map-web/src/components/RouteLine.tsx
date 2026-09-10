@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
-import type maplibregl from 'maplibre-gl';
-import { useMap, useEvent } from '../store/hooks';
-import { RouteCoordinatesSchema, RouteLineGeoJSONSchema } from '../schemas';
+import type * as maplibregl from 'maplibre-gl';
+import { useMap, useEvent } from '../store/hooks.js';
+import { RouteCoordinatesSchema, RouteLineGeoJSONSchema } from '../schemas.js';
 
 type FeatureMouseEvent = maplibregl.MapMouseEvent & {
   features?: maplibregl.MapGeoJSONFeature[];

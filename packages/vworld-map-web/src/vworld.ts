@@ -1,4 +1,5 @@
-import maplibregl, { type ErrorEvent, type StyleSpecification, type AddProtocolAction } from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
+import type { ErrorEvent, StyleSpecification, AddProtocolAction } from 'maplibre-gl';
 import {
   createVWorldStyle,
   getVWorldTileUrl as coreGetVWorldTileUrl,

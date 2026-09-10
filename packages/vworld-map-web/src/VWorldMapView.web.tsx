@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import maplibregl, { type Map as MapLibreMap } from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
+import type { Map as MapLibreMap } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import {
   getVWorldMaxZoom,
@@ -9,9 +10,9 @@ import {
   redactVWorldUrl,
   registerVWorldProtocol,
   type VWorldLayerType,
-} from './vworld';
-import { MapStore } from './store/mapStore';
-import { MapStoreContext, useEvent, useMapLoaded } from './store/hooks';
+} from './vworld.js';
+import { MapStore } from './store/mapStore.js';
+import { MapStoreContext, useEvent, useMapLoaded } from './store/hooks.js';
 
 /**
  * Reason the map cannot be initialized.
@@ -626,11 +627,17 @@ export const VWorldMapView: React.FC<VWorldMapViewProps> = ({
   // on click count, only on the ref being read while still stale. Clearing it first makes the
   // reentrant call's `if (!pending) return;` (or the bbox equivalent) terminate the recursion
   // immediately, since by definition the update it would have applied already happened.
+  //
+  // `isMoving()` alone (no `isEasing()`) guards the animated paths below: maplibre-gl v6 removed
+  // `isEasing()` from the public `Map` API (Camera-internal only). `Map.isMoving()` delegates to
+  // `Camera.isMoving()` (`this._moving`), which `Camera._prepareEase` sets synchronously as its
+  // first statement when `easeTo`/`flyTo` starts — the same instant `isEasing()`'s `_easeFrameId`
+  // would have flipped — so this keeps the guard's timing equivalent post-upgrade.
   const applyPendingCameraIfAny = useCallback((map: MapLibreMap): void => {
     const { cameraTransition: transition } = cameraOptionsRef.current;
 
     if (pendingBboxRef.current) {
-      if (map.isMoving() || map.isEasing()) return;
+      if (map.isMoving()) return;
       const b = pendingBboxRef.current;
       pendingBboxRef.current = null;
       lastBboxRef.current = b;
@@ -644,7 +651,7 @@ export const VWorldMapView: React.FC<VWorldMapViewProps> = ({
 
     const pending = pendingCameraRef.current;
     if (!pending) return;
-    if (map.isMoving() || map.isEasing()) return;
+    if (map.isMoving()) return;
 
     pendingCameraRef.current = null;
     lastCameraRef.current = pending;

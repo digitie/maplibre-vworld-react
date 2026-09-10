@@ -1,6 +1,6 @@
 'use client';
 
-export { MapStore, type MapStoreSnapshot } from './mapStore';
+export { MapStore, type MapStoreSnapshot } from './mapStore.js';
 export {
   MapStoreContext,
   useMap,
@@ -8,4 +8,4 @@ export {
   useMapLoaded,
   useMapSelector,
   useEvent,
-} from './hooks';
+} from './hooks.js';

@@ -9,7 +9,7 @@ import {
   useSyncExternalStore,
 } from 'react';
 import type { Map as MapLibreMap } from 'maplibre-gl';
-import { MapStore, type MapStoreSnapshot } from './mapStore';
+import { MapStore, type MapStoreSnapshot } from './mapStore.js';
 
 /**
  * Context that carries the per-mount {@link MapStore} instance. Internal —

@@ -63,7 +63,7 @@ export const ClusterMarker: React.FC<ClusterMarkerProps> = ({
   };
 
   return (
-    <Marker {...props} onClick={markerOnClick} isCluster={true}>
+    <Marker {...props} ariaLabel={props.ariaLabel ?? `${count}개 위치 묶음 펼치기`} onClick={markerOnClick} isCluster={true}>
       <div
         style={bubbleStyle}
         onMouseEnter={handleEnter}

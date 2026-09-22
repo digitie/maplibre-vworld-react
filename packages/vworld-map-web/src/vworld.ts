@@ -73,6 +73,20 @@ const vworldProtocolHandler: AddProtocolAction = async (params, abortController)
     if (!response.ok) {
       throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
     }
+
+    // VWorld returns a successful XML OWS exception for tiles outside its
+    // Korean coverage.  Passing that XML through makes MapLibre report a
+    // raster decode failure, even though the visible Korean tiles are fine.
+    // Treat only this documented coverage response as a benign fallback;
+    // other XML responses still reach the error path below.
+    const contentType = response.headers.get('content-type')?.toLowerCase() ?? '';
+    if (contentType.includes('xml')) {
+      const body = await response.text();
+      if (body.includes('ExceptionReport') && body.includes('서비스 제공영역이 아닙니다')) {
+        return { data: await getFallbackImageData(fallbackUrl, label) };
+      }
+      throw new Error('VWorld returned an unexpected XML tile response');
+    }
     const data = await response.arrayBuffer();
     return { data };
   } catch (error: unknown) {

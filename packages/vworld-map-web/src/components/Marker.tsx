@@ -78,7 +78,7 @@ export interface MarkerProps {
   isCluster?: boolean;
   /** CSS `z-index` for stacking among other markers. */
   zIndex?: number;
-  /** `aria-label` for accessibility. When set, the element also gets `role="button"`. */
+  /** `aria-label` for accessibility. Clickable markers become keyboard-focusable buttons. */
   ariaLabel?: string;
   /** Additional CSS class names. */
   className?: string;
@@ -100,7 +100,8 @@ function applyMarkerState(
     className,
     interactionId,
     isCluster,
-  }: Pick<MarkerProps, 'selected' | 'highlighted' | 'zIndex' | 'ariaLabel' | 'className' | 'interactionId' | 'isCluster'>,
+    interactive,
+  }: Pick<MarkerProps, 'selected' | 'highlighted' | 'zIndex' | 'ariaLabel' | 'className' | 'interactionId' | 'isCluster'> & { interactive: boolean },
 ): void {
   element.dataset.selected = selected ? 'true' : 'false';
   element.dataset.highlighted = highlighted ? 'true' : 'false';
@@ -128,10 +129,15 @@ function applyMarkerState(
       : '';
   if (ariaLabel) {
     element.setAttribute('aria-label', ariaLabel);
-    element.setAttribute('role', 'button');
   } else {
     element.removeAttribute('aria-label');
+  }
+  if (ariaLabel && interactive) {
+    element.setAttribute('role', 'button');
+    element.tabIndex = 0;
+  } else {
     element.removeAttribute('role');
+    element.removeAttribute('tabindex');
   }
   // Token-set diff: only remove tokens that disappeared, only add tokens
   // that newly appeared. This avoids a single-frame flicker on tokens that
@@ -258,6 +264,12 @@ export const Marker: React.FC<MarkerProps> = ({
       event.stopPropagation();
       stableOnContextMenu(event, getContext(), marker);
     };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!hasOnClickRef.current || (event.key !== 'Enter' && event.key !== ' ')) return;
+      event.preventDefault();
+      event.stopPropagation();
+      element.click();
+    };
     const handleMouseEnter = (event: MouseEvent) => {
       setIsHovered(true);
       stableOnMouseEnter?.(event, getContext(), marker);
@@ -273,6 +285,7 @@ export const Marker: React.FC<MarkerProps> = ({
 
     element.addEventListener('click', handleClick);
     element.addEventListener('contextmenu', handleContextMenu);
+    element.addEventListener('keydown', handleKeyDown);
     element.addEventListener('mouseenter', handleMouseEnter);
     element.addEventListener('mouseleave', handleMouseLeave);
     if (draggable) marker.on('dragend', handleDragEnd);
@@ -282,6 +295,7 @@ export const Marker: React.FC<MarkerProps> = ({
     return () => {
       element.removeEventListener('click', handleClick);
       element.removeEventListener('contextmenu', handleContextMenu);
+      element.removeEventListener('keydown', handleKeyDown);
       element.removeEventListener('mouseenter', handleMouseEnter);
       element.removeEventListener('mouseleave', handleMouseLeave);
       if (draggable) marker.off('dragend', handleDragEnd);
@@ -320,9 +334,10 @@ export const Marker: React.FC<MarkerProps> = ({
       className,
       interactionId,
       isCluster,
+      interactive: onClick !== undefined,
     });
     prevClassNameRef.current = className;
-  }, [selected, highlighted, zIndex, ariaLabel, className, interactionId, isCluster]);
+  }, [selected, highlighted, zIndex, ariaLabel, className, interactionId, isCluster, onClick]);
 
   if (hasChildren && container) {
     return createPortal(

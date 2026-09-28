@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import useSupercluster from 'use-supercluster';
 import type Supercluster from 'supercluster';
-import { useMap } from '../store/hooks.js';
+import { useMap, useMapLoaded } from '../store/hooks.js';
 import { ClusterMarker } from './ClusterMarker.js';
 
 /**
@@ -85,11 +85,12 @@ export const ClusterLayer: React.FC<ClusterLayerProps> = ({
   generateId = true,
 }) => {
   const map = useMap();
+  const loaded = useMapLoaded();
   const [bounds, setBounds] = useState<Bounds | null>(null);
   const [zoom, setZoom] = useState<number>(() => 0);
 
   useEffect(() => {
-    if (!map) return;
+    if (!map || !loaded) return;
 
     const update = () => {
       const b = map.getBounds();
@@ -109,22 +110,16 @@ export const ClusterLayer: React.FC<ClusterLayerProps> = ({
       });
     };
 
-    // `getBounds()` returns a degenerate box before the map's first
-    // `idle`; wait for that to fire (or `load` if it has not yet) so the
-    // first cluster pass uses real viewport bounds.
-    if (map.loaded()) {
-      update();
-    } else {
-      map.once('load', update);
-    }
+    // 최초 load 이력을 구독한다. map.loaded()는 이후 타일/스타일 갱신 중에도
+    // false가 되므로 이미 지난 일회성 load를 다시 기다리면 첫 마커가 누락된다.
+    update();
     map.on('moveend', update);
     map.on('zoomend', update);
     return () => {
-      map.off('load', update);
       map.off('moveend', update);
       map.off('zoomend', update);
     };
-  }, [map]);
+  }, [map, loaded]);
 
   const features = useMemo<ClusterPointFeature[]>(
     () =>

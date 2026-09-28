@@ -5,7 +5,7 @@ import { ClusterLayer, Marker, VWorldMapView } from 'vworld-map-web';
 const points = [1, 2, 3].map((id) => ({ id, lngLat: [126.978, 37.5665] as [number, number] }));
 const late = new URLSearchParams(location.search).has('late');
 
-function Fixture() {
+export default function Fixture() {
   const [ready, setReady] = useState(!late);
   return <VWorldMapView apiKey="e2e-dummy-key" center={[126.978, 37.5665]} zoom={12}
     style={{ width: '100vw', height: '100vh' }}

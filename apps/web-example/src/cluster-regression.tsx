@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ClusterLayer, Marker, VWorldMapView } from 'vworld-map-web';
 
@@ -7,7 +7,8 @@ const late = new URLSearchParams(location.search).has('late');
 
 export default function Fixture() {
   const [ready, setReady] = useState(!late);
-  return <VWorldMapView apiKey="e2e-dummy-key" center={[126.978, 37.5665]} zoom={12}
+  const finishUpdate = useRef(() => {});
+  return <><VWorldMapView apiKey="e2e-dummy-key" center={[126.978, 37.5665]} zoom={12}
     style={{ width: '100vw', height: '100vh' }}
     onLoad={(map) => {
       if (!late) return;
@@ -15,10 +16,10 @@ export default function Fixture() {
       const loaded = map.loaded.bind(map);
       map.loaded = () => false;
       setReady(true);
-      setTimeout(() => { map.loaded = loaded; }, 500);
+      finishUpdate.current = () => { map.loaded = loaded; };
     }}>
     {ready ? <ClusterLayer points={points} renderMarker={(point) => <Marker lngLat={point.lngLat}>장소</Marker>} /> : null}
-  </VWorldMapView>;
+  </VWorldMapView>{late ? <button style={{ position: 'fixed', top: 0, left: 0 }} onClick={() => finishUpdate.current()}>타일 갱신 완료</button> : null}</>;
 }
 
 createRoot(document.getElementById('root')!).render(<Fixture />);

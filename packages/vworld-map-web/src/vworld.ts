@@ -1,5 +1,6 @@
 import * as maplibregl from 'maplibre-gl';
 import type { ErrorEvent, StyleSpecification, AddProtocolAction } from 'maplibre-gl';
+import { vworldRequestUrl } from './vworldRequest.js';
 import {
   createVWorldStyle,
   getVWorldTileUrl as coreGetVWorldTileUrl,
@@ -62,11 +63,7 @@ const vworldProtocolHandler: AddProtocolAction = async (params, abortController)
   const label = urlObj.searchParams.get('label');
   const mapId = urlObj.searchParams.get('mapId');
   
-  urlObj.protocol = 'https:';
-  urlObj.searchParams.delete('fallback');
-  urlObj.searchParams.delete('label');
-  urlObj.searchParams.delete('mapId');
-  const realUrl = urlObj.toString();
+  const realUrl = vworldRequestUrl(params.url);
 
   try {
     const response = await fetch(realUrl, { signal: abortController.signal });

@@ -7,7 +7,7 @@ PR에서는 임시 merge commit 대신 github.event.pull_request.head.sha를 che
 따라서 PR head가 바뀌면 새 SHA의 성공을 다시 확인해야 한다. 이전 SHA의 성공으로 ready/merge하지 않는다.
 
 Ubuntu 24.04, Node 22.22.2, npm 11.19.1을 고정한다. 현재 lockfile의 Vite 8.0.16, ESLint 10.5.0, React Native 0.85.3 engines가 이 Node 버전을 허용함을 확인했다.
-npm ci --engine-strict로 실제 설치 시에도 engines를 검사한다. package.json의 기존 packageManager와 패키지 버전·의존성·lockfile은 변경하지 않았다.
+npm은 runner 임시 prefix에 따로 설치해 실행 중인 기본 npm을 덮어쓰지 않는다. npm ci --engine-strict로 실제 설치 시에도 engines를 검사한다. package.json의 기존 packageManager와 패키지 버전·의존성·lockfile은 변경하지 않았다.
 
 checkout/setup-node/upload-artifact는 확인한 공식 Action의 전체 commit SHA로 고정했다.
 GitHub 권한은 contents: read뿐이며 checkout 자격 증명을 작업 파일에 남기지 않는다.
@@ -63,3 +63,10 @@ apps 트리는 69fd1027a9db07697b020bedc8f345c328f81bed이며 이번 workflow/�
 
 공식 동작은 [checkout](https://github.com/actions/checkout), [setup-node](https://github.com/actions/setup-node),
 [Playwright CI 안내](https://playwright.dev/docs/ci-intro)를 참고했다.
+
+## 최초 CI 실패 보완
+
+f31e60d의 첫 GitHub 실행은 기본 npm이 자기 자신을 전역 갱신하는 중 Cannot find module 'promise-retry'로 실패했다.
+워크플로 push 권한 실패는 아니며 checkout은 정확한 HEAD에서 성공했다.
+npm 11.19.1을 runner 임시 prefix에 설치하고 PATH로 선택하도록 바꿔 실행 중인 기본 npm의 파일을 제거하지 않게 했다.
+upload-artifact도 공식 v7.0.2 전체 SHA로 고정해 Node 20 Action의 강제 전환 경고를 없앴다.

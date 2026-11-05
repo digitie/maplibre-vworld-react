@@ -20,8 +20,8 @@ GitHub 권한은 contents: read뿐이며 checkout 자격 증명을 작업 파일
 3. 새 checkout에서 아직 없는 core/dist 타입을 npm run build -w packages/vworld-map-core로 준비한다.
 4. 루트 npm run typecheck → npm run build → npm run lint → npm run test를 순서대로 실행한다. 현재 기존 RN 테스트는 21개다.
 5. lockfile에 설치된 Playwright CLI로 Chromium과 Linux 시스템 의존성을 설치한다.
-6. 기존 playwright.marker.config.ts와 marker-scale.spec.ts로 빈 스타일 마커 회귀 11개를 실행한다.
-7. 위 HEAD에서 빌드한 core/web을 npm pack하고, 기존 fixture를 임시 소비 프로젝트에 복사해 tarball을 설치한 다음 동일한 회귀 11개를 다시 실행한다.
+6. 기존 playwright.marker.config.ts와 marker-scale.spec.ts로 빈 스타일 마커 회귀 17개(기존 11개와 P2 전환 회귀 6개)를 실행한다.
+7. 위 HEAD에서 빌드한 core/web을 npm pack하고, 기존 fixture를 임시 소비 프로젝트에 복사해 tarball을 설치한 다음 동일한 회귀 17개를 다시 실행한다.
 
 모든 shell 실행은 오류 및 pipe 실패를 전파한다. 타입/빌드/린트/테스트 실패를 tee가 숨기지 않는다.
 공유 runner의 CPU 속도 차이만 고려해 브라우저 테스트별 제한은 60초로 두고 retry는 추가하지 않는다.
@@ -50,15 +50,15 @@ artifact 이름은 marker-ci-<검증 HEAD SHA>이며 성공/실패와 무관하�
 
 - provenance.txt: HEAD SHA, Node/npm, packages/apps 트리, lockfile 및 Marker.tsx SHA256.
 - npm-ci.log, core-bootstrap.log, typecheck.log, build.log, lint.log, test.log.
-- marker-browser.log 및 marker-results/: 기존 11개 결과, SVG 끝점 실측과 화면.
+- marker-browser.log 및 marker-results/: 기존 11개와 P2 6개 결과, SVG 끝점 실측과 화면.
 - pack-core.json, pack-web.json, tarballs.sha256 및 tarballs/: 해당 HEAD의 설치 tarball.
 - consumer-install.log, consumer-package-lock.json, consumer-tree.log.
 - consumer-browser.log 및 consumer-results/: 설치된 tarball의 동일 브라우저 회귀 결과.
 
 기존 zod 및 전체 의존성 감사 문제는 이번 CI 추가에서 갱신하거나 숨기지 않는다. 별도의 audit 성공을 이 job이 보증하지 않는다.
-Firefox PR #30 변경, 마커 런타임 소스, 테스트/fixture/config 파일은 이번 추가 범위에서 바꾸지 않았다.
+CI 추가 자체는 Firefox PR #30, 런타임, 테스트/fixture/config를 바꾸지 않았다. 후속 전문 리뷰의 두 P2에 대해서만 Marker.tsx와 기존 fixture/spec을 보완했다.
 기준 3c3608bc106c55445c96625d81fcdeeda4838c67의 packages 트리는 9a8b4c40c9a6d327e0863fc660895c72415e69ce,
-apps 트리는 69fd1027a9db07697b020bedc8f345c328f81bed이며 이번 workflow/문서 커밋에서도 동일해야 한다.
+apps 트리는 69fd1027a9db07697b020bedc8f345c328f81bed이며 CI만 추가한 f31e60d/8ccbe7a까지 동일하다. 후속 P2의 실제 원인과 소스 변경·실측은 [P2 보완 기록](marker-review-p2.md)에 구분한다.
 정확한 새 HEAD의 CI 성공 및 전문 독립 리뷰 2건 확인 후 ready/merge는 메인 담당자가 수행한다.
 
 공식 동작은 [checkout](https://github.com/actions/checkout), [setup-node](https://github.com/actions/setup-node),

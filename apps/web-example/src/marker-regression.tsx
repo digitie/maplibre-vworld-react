@@ -68,12 +68,18 @@ export default function Fixture() {
   const [state, setState] = useState('false');
   const [color, setColor] = useState('#DB4437');
   const [visible, setVisible] = useState(true);
+  const [dynamicOffset, setDynamicOffset] = useState<[number, number] | undefined>(
+    params.get('initial-offset') === 'explicit' ? [13, -9]
+      : params.get('initial-offset') === 'zero' ? [0, 0] : undefined,
+  );
+  const [markerClass, setMarkerClass] = useState<string | undefined>('probe-marker shared-token');
+  const [draggable, setDraggable] = useState(true);
   const Component = custom ? PinMarker : Marker;
   return <><MapStoreContext.Provider value={store}>
-    {visible && coordinates.map((lngLat, i) => <Component key={i} lngLat={lngLat} color={color}
+    {visible && coordinates.map((lngLat, i) => <Component key={i} lngLat={lngLat} color={color} offset={dynamicOffset}
       {...(shape ? { anchor, offset, children: <svg width="40" height="60" viewBox="0 0 40 60" style={{ display: 'block' }}><path fill={color} d="M0 0H40V60H0Z" /></svg> } : {})}
-      selected={state === 'selected'} highlighted={state === 'highlighted'} draggable
-      ariaLabel={`검증 마커 ${i}`} interactionId={`probe-${i}`} className="probe-marker"
+      selected={state === 'selected'} highlighted={state === 'highlighted'} draggable={draggable}
+      ariaLabel={`검증 마커 ${i}`} interactionId={`probe-${i}`} className={markerClass}
       onClick={(_event, context, marker) => events.push({ type: 'click', context, sameRoot: marker.getElement().classList.contains('probe-marker') })}
       onContextMenu={(_event, context) => events.push({ type: 'contextmenu', context })}
       onDragEnd={(lngLat) => events.push({ type: 'dragend', lngLat })}
@@ -82,6 +88,16 @@ export default function Fixture() {
     {['false', 'selected', 'highlighted'].map((value) => <button key={value} onClick={() => setState(value)}>{value}</button>)}
     <button onClick={() => setColor('#8844CC')}>색상 변경</button>
     <button onClick={() => setVisible(!visible)}>마커 토글</button>
+    <button onClick={() => setDynamicOffset([13, -9])}>offset 설정</button>
+    <button onClick={() => setDynamicOffset([0, 0])}>offset 영점</button>
+    <button onClick={() => setDynamicOffset(undefined)}>offset 기본값</button>
+    {['color', 'draggable'].flatMap((property) => ['new', 'undefined'].map((next) =>
+      <button key={property + next} onClick={() => {
+        setMarkerClass(next === 'new' ? 'probe-next shared-token' : undefined);
+        if (property === 'color') setColor('#8844CC');
+        else setDraggable(false);
+      }}>{`class ${property} ${next}`}</button>))}
+
   </>;
 }
 const root = createRoot(document.getElementById('root')!);

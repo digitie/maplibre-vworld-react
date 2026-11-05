@@ -82,7 +82,7 @@ jobs:
       - name: Lockfile Playwright의 Chromium 설치
         run: npm exec -- playwright install --with-deps chromium
 
-      - name: 빈 스타일 Chromium 마커 회귀 11개
+      - name: 빈 스타일 Chromium 마커 회귀 17개
         run: |
           npm run test:e2e -w apps/web-example --             --config playwright.marker.config.ts --timeout=60000             --output "$CI_ARTIFACTS/marker-results"             2>&1 | tee "$CI_ARTIFACTS/marker-browser.log"
 
@@ -134,7 +134,7 @@ jobs:
             };`);
           JS
 
-      - name: Tarball 소비 설치 및 동일 Chromium 회귀 11개
+      - name: Tarball 소비 설치 및 동일 Chromium 회귀 17개
         run: |
           npm install --prefix "$CONSUMER_DIR" --ignore-scripts --engine-strict 2>&1 | tee "$CI_ARTIFACTS/consumer-install.log"
           cp "$CONSUMER_DIR/package-lock.json" "$CI_ARTIFACTS/consumer-package-lock.json"

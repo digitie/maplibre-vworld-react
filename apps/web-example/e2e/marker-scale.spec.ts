@@ -80,3 +80,63 @@ for (const anchor of ['center', 'top', 'bottom', 'left', 'right', 'top-left', 't
     }
   });
 }
+
+for (const state of ['selected', 'highlighted']) {
+  test(`기본 핀 동적 offset이 새 마커와 같은 끝점을 유지한다 (${state})`, async ({ page, context }, testInfo) => {
+    await context.route('**/*', (route) => new URL(route.request().url()).hostname === '127.0.0.1' ? route.continue() : route.abort());
+    await page.goto('/marker-regression.html');
+    await expect(page.locator('.maplibregl-marker')).toHaveCount(2);
+    const roots = await page.locator('.maplibregl-marker').elementHandles();
+    await page.getByRole('button', { name: state, exact: true }).click();
+    for (const [button, initial] of [['offset 설정', 'explicit'], ['offset 영점', 'zero'], ['offset 기본값', 'default']]) {
+      await page.getByRole('button', { name: button, exact: true }).click();
+      await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+      const fresh = await context.newPage();
+      await fresh.goto(`/marker-regression.html?initial-offset=${initial}`);
+      await expect(fresh.locator('.maplibregl-marker')).toHaveCount(2);
+      await fresh.getByRole('button', { name: state, exact: true }).click();
+      const actual = await page.evaluate(() => window.markerProbe.sample()) as { tip: number[]; camera: unknown; coordinate: unknown }[];
+      const expected = await fresh.evaluate(() => window.markerProbe.sample()) as typeof actual;
+      await testInfo.attach(`offset-${initial}`, { body: JSON.stringify({ actual, expected }), contentType: 'application/json' });
+      console.log(JSON.stringify({ regression: 'offset', state, initial, actual, expected }));
+      for (let i = 0; i < actual.length; i++) {
+        expect(actual[i].camera).toEqual(expected[i].camera);
+        expect(actual[i].coordinate).toEqual(expected[i].coordinate);
+        expect(Math.abs(actual[i].tip[0] - expected[i].tip[0])).toBeLessThan(0.1);
+        expect(Math.abs(actual[i].tip[1] - expected[i].tip[1])).toBeLessThan(0.1);
+        expect(await roots[i].evaluate((root, i) => root === document.querySelectorAll('.maplibregl-marker')[i], i)).toBe(true);
+      }
+      await fresh.close();
+    }
+  });
+}
+
+for (const property of ['color', 'draggable']) for (const next of ['new', 'undefined']) {
+  test(`커스텀 root 재사용 시 이전 class 제거 (${property} / ${next})`, async ({ page }, testInfo) => {
+    await page.route('**/*', (route) => new URL(route.request().url()).hostname === '127.0.0.1' ? route.continue() : route.abort());
+    await page.goto('/marker-regression.html?shape');
+    await expect(page.locator('.maplibregl-marker')).toHaveCount(2);
+    const root = await page.locator('.maplibregl-marker').first().elementHandle();
+    if (!root) throw new Error('기존 root 없음');
+    await root.evaluate((element) => element.classList.add('consumer-owned'));
+    await page.getByRole('button', { name: `class ${property} ${next}`, exact: true }).click();
+    const current = page.getByRole('button', { name: '검증 마커 0', exact: true });
+    await expect(current).toBeVisible();
+    const classes = await current.getAttribute('class');
+    await testInfo.attach('재생성 후 class', { body: JSON.stringify({ property, next, classes }), contentType: 'application/json' });
+    console.log(JSON.stringify({ regression: 'class', property, next, classes }));
+    expect(await root.evaluate((element) => element === document.querySelector('.maplibregl-marker'))).toBe(true);
+    await expect(current).not.toHaveClass(/probe-marker/);
+    await expect(current).toHaveClass(/consumer-owned/);
+    if (next === 'new') {
+      await expect(current).toHaveClass(/probe-next/);
+      await expect(current).toHaveClass(/shared-token/);
+    } else {
+      await expect(current).not.toHaveClass(/shared-token/);
+    }
+    await current.focus();
+    await expect(current).toBeFocused();
+    await current.press('Enter');
+    expect(await page.evaluate(() => window.markerProbe.events.length)).toBe(1);
+  });
+}

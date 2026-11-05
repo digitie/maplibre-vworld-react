@@ -1,0 +1,340 @@
+{
+  "base": "fb754755871ca8318907327c9a7d096dd96b1278",
+  "beforeHead": "8ccbe7a6276907d27755f522a0ed19ff11f79e55",
+  "beforeMarkerSha256": "a2d8a290f4299389f529fe35722e1dfdfdcb69d92334cc696f4175c899deecdb",
+  "afterMarkerSha256": "a2652bf98c3ad446cdc21c40537d66a2af8f150a6254c6e6896894171246ccdf",
+  "measurements": {
+    "before": [
+      {
+        "regression": "offset",
+        "state": "selected",
+        "initial": "explicit",
+        "tipDelta": [
+          [
+            0.0,
+            -2.5199966430664062
+          ],
+          [
+            0.0,
+            -2.519989013671875
+          ]
+        ],
+        "actualTip": [
+          [
+            92.99502725384878,
+            105.88498106122097
+          ],
+          [
+            792.9950348832433,
+            545.8849886906155
+          ]
+        ],
+        "expectedTip": [
+          [
+            92.99502725384878,
+            108.40497770428738
+          ],
+          [
+            792.9950348832433,
+            548.4049777042874
+          ]
+        ]
+      },
+      {
+        "regression": "offset",
+        "state": "highlighted",
+        "initial": "explicit",
+        "tipDelta": [
+          [
+            0.0,
+            -1.399993896484375
+          ],
+          [
+            0.0,
+            -1.4000244140625
+          ]
+        ],
+        "actualTip": [
+          [
+            92.99536718120066,
+            105.82498710751497
+          ],
+          [
+            792.9953900693843,
+            545.8249718487259
+          ]
+        ],
+        "expectedTip": [
+          [
+            92.99536718120066,
+            107.22498100399935
+          ],
+          [
+            792.9953900693843,
+            547.2249962627884
+          ]
+        ]
+      },
+      {
+        "regression": "class",
+        "property": "color",
+        "next": "new",
+        "classes": "maplibregl-marker maplibregl-marker-draggable probe-marker shared-token consumer-owned maplibregl-marker-anchor-center probe-next"
+      },
+      {
+        "regression": "class",
+        "property": "color",
+        "next": "undefined",
+        "classes": "maplibregl-marker maplibregl-marker-draggable probe-marker shared-token consumer-owned maplibregl-marker-anchor-center"
+      },
+      {
+        "regression": "class",
+        "property": "draggable",
+        "next": "new",
+        "classes": "maplibregl-marker probe-marker shared-token consumer-owned maplibregl-marker-anchor-center probe-next"
+      },
+      {
+        "regression": "class",
+        "property": "draggable",
+        "next": "undefined",
+        "classes": "maplibregl-marker probe-marker shared-token consumer-owned maplibregl-marker-anchor-center"
+      }
+    ],
+    "after": [
+      {
+        "regression": "offset",
+        "state": "selected",
+        "initial": "explicit",
+        "tipDelta": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "actualTip": [
+          [
+            92.99502725384878,
+            108.40497770428738
+          ],
+          [
+            792.9950348832433,
+            548.4049777042874
+          ]
+        ],
+        "expectedTip": [
+          [
+            92.99502725384878,
+            108.40497770428738
+          ],
+          [
+            792.9950348832433,
+            548.4049777042874
+          ]
+        ]
+      },
+      {
+        "regression": "offset",
+        "state": "selected",
+        "initial": "zero",
+        "tipDelta": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "actualTip": [
+          [
+            79.99502725384878,
+            117.40497770428738
+          ],
+          [
+            779.9950348832433,
+            557.4049777042874
+          ]
+        ],
+        "expectedTip": [
+          [
+            79.99502725384878,
+            117.40497770428738
+          ],
+          [
+            779.9950348832433,
+            557.4049777042874
+          ]
+        ]
+      },
+      {
+        "regression": "offset",
+        "state": "selected",
+        "initial": "default",
+        "tipDelta": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "actualTip": [
+          [
+            79.99502725384878,
+            100.88498106122097
+          ],
+          [
+            779.9950348832433,
+            540.8849886906155
+          ]
+        ],
+        "expectedTip": [
+          [
+            79.99502725384878,
+            100.88498106122097
+          ],
+          [
+            779.9950348832433,
+            540.8849886906155
+          ]
+        ]
+      },
+      {
+        "regression": "offset",
+        "state": "highlighted",
+        "initial": "explicit",
+        "tipDelta": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "actualTip": [
+          [
+            92.99536718120066,
+            107.22498100399935
+          ],
+          [
+            792.9953900693843,
+            547.2249962627884
+          ]
+        ],
+        "expectedTip": [
+          [
+            92.99536718120066,
+            107.22498100399935
+          ],
+          [
+            792.9953900693843,
+            547.2249962627884
+          ]
+        ]
+      },
+      {
+        "regression": "offset",
+        "state": "highlighted",
+        "initial": "zero",
+        "tipDelta": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "actualTip": [
+          [
+            79.99536718120066,
+            116.22498100399935
+          ],
+          [
+            779.9953900693843,
+            556.2249962627884
+          ]
+        ],
+        "expectedTip": [
+          [
+            79.99536718120066,
+            116.22498100399935
+          ],
+          [
+            779.9953900693843,
+            556.2249962627884
+          ]
+        ]
+      },
+      {
+        "regression": "offset",
+        "state": "highlighted",
+        "initial": "default",
+        "tipDelta": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "actualTip": [
+          [
+            79.99536718120066,
+            100.8249832928177
+          ],
+          [
+            779.9953900693843,
+            540.8249718487259
+          ]
+        ],
+        "expectedTip": [
+          [
+            79.99536718120066,
+            100.8249832928177
+          ],
+          [
+            779.9953900693843,
+            540.8249718487259
+          ]
+        ]
+      },
+      {
+        "regression": "class",
+        "property": "color",
+        "next": "new",
+        "classes": "maplibregl-marker maplibregl-marker-draggable consumer-owned maplibregl-marker-anchor-center probe-next shared-token"
+      },
+      {
+        "regression": "class",
+        "property": "color",
+        "next": "undefined",
+        "classes": "maplibregl-marker maplibregl-marker-draggable consumer-owned maplibregl-marker-anchor-center"
+      },
+      {
+        "regression": "class",
+        "property": "draggable",
+        "next": "new",
+        "classes": "maplibregl-marker consumer-owned maplibregl-marker-anchor-center probe-next shared-token"
+      },
+      {
+        "regression": "class",
+        "property": "draggable",
+        "next": "undefined",
+        "classes": "maplibregl-marker consumer-owned maplibregl-marker-anchor-center"
+      }
+    ]
+  }
+}

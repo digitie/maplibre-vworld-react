@@ -255,11 +255,6 @@ export const Marker: React.FC<MarkerProps> = ({
       const svg = element.querySelector('svg');
       if (svg) {
         svg.style.transform = 'scale(var(--vworld-marker-scale, 1))';
-        // MapLibre's default pin uses a center anchor and a built-in -14px
-        // offset to place its tip at lngLat. Keep that tip as the scale origin.
-        svg.style.transformOrigin = (anchor === undefined || anchor === 'center') && offset === undefined
-          ? '50% calc(50% + 14px)'
-          : ANCHOR_ORIGINS[anchor ?? 'center'];
       }
     }
 
@@ -315,6 +310,11 @@ export const Marker: React.FC<MarkerProps> = ({
     markerRef.current = marker;
 
     return () => {
+      // Custom roots are reused across marker recreation. Remove only the
+      // className tokens we own before resetting the next instance's diff.
+      for (const token of prevClassNameRef.current?.split(/\s+/).filter(Boolean) ?? []) {
+        element.classList.remove(token);
+      }
       element.removeEventListener('click', handleClick);
       element.removeEventListener('contextmenu', handleContextMenu);
       element.removeEventListener('keydown', handleKeyDown);
@@ -336,8 +336,21 @@ export const Marker: React.FC<MarkerProps> = ({
   // re-creating. `anchor` does not — changing it falls through to the
   // construction effect above.
   useEffect(() => {
-    if (offset !== undefined) markerRef.current?.setOffset(offset);
-  }, [offset]);
+    const marker = markerRef.current;
+    if (!marker) return;
+    // Removing an explicit offset restores the same default as construction.
+    marker.setOffset(offset ?? (hasChildren ? [0, 0] : [0, -14]));
+    if (!hasChildren) {
+      const svg = marker.getElement().querySelector('svg');
+      if (svg) {
+        // The default center pin uses a -14px offset. Explicit offsets use
+        // the declared anchor origin, just as a newly constructed marker.
+        svg.style.transformOrigin = (anchor === undefined || anchor === 'center') && offset === undefined
+          ? '50% calc(50% + 14px)'
+          : ANCHOR_ORIGINS[anchor ?? 'center'];
+      }
+    }
+  }, [map, hasChildren, color, draggable, anchor, container, offset]);
 
   // Apply visual state.
   useEffect(() => {

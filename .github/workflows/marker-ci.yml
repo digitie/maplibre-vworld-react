@@ -1,0 +1,151 @@
+name: Marker CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: marker-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  marker:
+    name: Linux / Node 22.22.2 / npm 11.19.1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+    env:
+      CI: 'true'
+      TURBO_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '22.22.2'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: 실행 HEAD 및 도구 버전 고정
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          export CI_ARTIFACTS="$RUNNER_TEMP/marker-ci-artifacts"
+          {
+            printf 'CI_ARTIFACTS=%s\n' "$CI_ARTIFACTS"
+            printf 'CONSUMER_DIR=%s\n' "$RUNNER_TEMP/marker-ci-consumer"
+          } >> "$GITHUB_ENV"
+          mkdir -p "$CI_ARTIFACTS"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          test "$(node --version)" = 'v22.22.2'
+          npm install --prefix "$RUNNER_TEMP/marker-ci-tools" --no-package-lock --ignore-scripts npm@11.19.1
+          printf '%s\n' "$RUNNER_TEMP/marker-ci-tools/node_modules/.bin" >> "$GITHUB_PATH"
+          export PATH="$RUNNER_TEMP/marker-ci-tools/node_modules/.bin:$PATH"
+          test "$(npm --version)" = '11.19.1'
+          {
+            git rev-parse HEAD
+            node --version
+            npm --version
+            git rev-parse HEAD:packages HEAD:apps
+            sha256sum package-lock.json packages/vworld-map-web/src/components/Marker.tsx
+          } | tee "$CI_ARTIFACTS/provenance.txt"
+
+      - name: Lockfile 의존성 설치 및 engines 확인
+        run: npm ci --engine-strict 2>&1 | tee "$CI_ARTIFACTS/npm-ci.log"
+
+      # fresh checkout에는 패키지 types가 가리키는 core/dist가 아직 없다.
+      - name: Core 타입 산출물 준비
+        run: npm run build -w packages/vworld-map-core 2>&1 | tee "$CI_ARTIFACTS/core-bootstrap.log"
+
+      - name: Typecheck
+        run: npm run typecheck 2>&1 | tee "$CI_ARTIFACTS/typecheck.log"
+
+      - name: Build
+        run: npm run build 2>&1 | tee "$CI_ARTIFACTS/build.log"
+
+      - name: Lint
+        run: npm run lint 2>&1 | tee "$CI_ARTIFACTS/lint.log"
+
+      - name: 기존 테스트 21개
+        run: npm run test 2>&1 | tee "$CI_ARTIFACTS/test.log"
+
+      - name: Lockfile Playwright의 Chromium 설치
+        run: npm exec -- playwright install --with-deps chromium
+
+      - name: 빈 스타일 Chromium 마커 회귀 17개
+        run: |
+          npm run test:e2e -w apps/web-example --             --config playwright.marker.config.ts --timeout=60000             --output "$CI_ARTIFACTS/marker-results"             2>&1 | tee "$CI_ARTIFACTS/marker-browser.log"
+
+      - name: Tarball 및 기존 fixture 소비 경로 준비
+        run: |
+          mkdir -p "$CI_ARTIFACTS/tarballs"
+          npm pack -w packages/vworld-map-core --pack-destination "$CI_ARTIFACTS/tarballs" --json > "$CI_ARTIFACTS/pack-core.json"
+          npm pack -w packages/vworld-map-web --pack-destination "$CI_ARTIFACTS/tarballs" --json > "$CI_ARTIFACTS/pack-web.json"
+          sha256sum "$CI_ARTIFACTS"/tarballs/*.tgz | tee "$CI_ARTIFACTS/tarballs.sha256"
+          node --input-type=module <<'JS'
+          import { mkdirSync, readFileSync, writeFileSync, copyFileSync } from 'node:fs';
+          import { join } from 'node:path';
+          import { createRequire } from 'node:module';
+          const require = createRequire(import.meta.url);
+          const repo = process.cwd();
+          const consumer = process.env.CONSUMER_DIR;
+          const artifacts = process.env.CI_ARTIFACTS;
+          mkdirSync(consumer);
+          const packed = (name) => join(artifacts, 'tarballs', JSON.parse(readFileSync(join(artifacts, `pack-${name}.json`)))[0].filename);
+          writeFileSync(join(consumer, 'package.json'), JSON.stringify({
+            name: 'marker-ci-consumer', private: true, type: 'module',
+            dependencies: {
+              'vworld-map-core': `file:${packed('core')}`,
+              'vworld-map-web': `file:${packed('web')}`,
+              'maplibre-gl': '6.16.0', react: '19.2.7', 'react-dom': '19.2.7',
+            },
+          }, null, 2));
+          copyFileSync(join(repo, 'apps/web-example/src/marker-regression.tsx'), join(consumer, 'fixture.tsx'));
+          writeFileSync(join(consumer, 'marker-regression.html'),
+            readFileSync('apps/web-example/marker-regression.html', 'utf8').replace('/src/marker-regression.tsx', '/fixture.tsx'));
+          writeFileSync(join(consumer, 'vite.config.mjs'), `
+            import react from ${JSON.stringify(require.resolve('@vitejs/plugin-react'))};
+            export default {
+              plugins: [react()], resolve: { dedupe: ['react', 'react-dom'] },
+              optimizeDeps: { include: ['vworld-map-core'], exclude: ['maplibre-gl'] },
+            };`);
+          writeFileSync(join(consumer, 'playwright.config.ts'), `
+            import config from ${JSON.stringify(join(repo, 'apps/web-example/playwright.marker.config.ts'))};
+            export default {
+              ...config,
+              testDir: ${JSON.stringify(join(repo, 'apps/web-example/e2e'))},
+              outputDir: ${JSON.stringify(join(artifacts, 'consumer-results'))},
+              use: { ...config.use, baseURL: 'http://127.0.0.1:5184' },
+              webServer: {
+                command: 'node "$GITHUB_WORKSPACE/node_modules/vite/bin/vite.js" "$CONSUMER_DIR" --config "$CONSUMER_DIR/vite.config.mjs" --host 127.0.0.1 --port 5184 --strictPort',
+                url: 'http://127.0.0.1:5184/marker-regression.html',
+                reuseExistingServer: false,
+              },
+            };`);
+          JS
+
+      - name: Tarball 소비 설치 및 동일 Chromium 회귀 17개
+        run: |
+          npm install --prefix "$CONSUMER_DIR" --ignore-scripts --engine-strict 2>&1 | tee "$CI_ARTIFACTS/consumer-install.log"
+          cp "$CONSUMER_DIR/package-lock.json" "$CI_ARTIFACTS/consumer-package-lock.json"
+          npm ls --prefix "$CONSUMER_DIR" --all > "$CI_ARTIFACTS/consumer-tree.log"
+          npm run test:e2e -w apps/web-example --             --config "$CONSUMER_DIR/playwright.config.ts" --timeout=60000             2>&1 | tee "$CI_ARTIFACTS/consumer-browser.log"
+
+      - name: HEAD별 로그·실측 화면·검증 tarball 보관
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: marker-ci-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/marker-ci-artifacts
+          if-no-files-found: warn
+          retention-days: 14

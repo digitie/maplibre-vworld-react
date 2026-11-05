@@ -9,6 +9,18 @@ import type { MarkerAnchor } from '../types.js';
 
 let globalMarkerZIndex = 1000;
 
+const ANCHOR_ORIGINS: Record<MarkerAnchor, string> = {
+  center: '50% 50%',
+  top: '50% 0%',
+  bottom: '50% 100%',
+  left: '0% 50%',
+  right: '100% 50%',
+  'top-left': '0% 0%',
+  'top-right': '100% 0%',
+  'bottom-left': '0% 100%',
+  'bottom-right': '100% 100%',
+};
+
 // Hover tooltip container — static, so hoisted out of render to avoid
 // reallocating the object on every render.
 const TOOLTIP_STYLE: React.CSSProperties = {
@@ -116,12 +128,10 @@ function applyMarkerState(
     delete element.dataset.isCluster;
   }
   element.style.zIndex = zIndex === undefined ? '' : String(zIndex);
-  // MapLibre owns the root `transform` for positioning. Keep a CSS variable
-  // for consumer hooks and set the individual `scale` property so selected /
-  // highlighted state composes with MapLibre's transform instead of replacing it.
+  // MapLibre owns the position root. Individual CSS scale on that root also
+  // scales its translation, so only the inner visual consumes this variable.
   const scale = selected ? '1.18' : highlighted ? '1.1' : '1';
   element.style.setProperty('--vworld-marker-scale', scale);
-  element.style.setProperty('scale', scale === '1' ? '' : scale);
   element.style.filter = selected
     ? 'drop-shadow(0 6px 14px rgba(0,0,0,0.34))'
     : highlighted
@@ -240,6 +250,18 @@ export const Marker: React.FC<MarkerProps> = ({
 
     const marker = new maplibregl.Marker(options).setLngLat(lngLat).addTo(map);
     const element = marker.getElement();
+    prevClassNameRef.current = undefined;
+    if (!hasChildren) {
+      const svg = element.querySelector('svg');
+      if (svg) {
+        svg.style.transform = 'scale(var(--vworld-marker-scale, 1))';
+        // MapLibre's default pin uses a center anchor and a built-in -14px
+        // offset to place its tip at lngLat. Keep that tip as the scale origin.
+        svg.style.transformOrigin = (anchor === undefined || anchor === 'center') && offset === undefined
+          ? '50% calc(50% + 14px)'
+          : ANCHOR_ORIGINS[anchor ?? 'center'];
+      }
+    }
 
     const getContext = (): MapInteractionContext => ({
       source: ctxRef.current.isCluster ? 'cluster' : 'marker',
@@ -337,11 +359,16 @@ export const Marker: React.FC<MarkerProps> = ({
       interactive: onClick !== undefined,
     });
     prevClassNameRef.current = className;
-  }, [selected, highlighted, zIndex, ariaLabel, className, interactionId, isCluster, onClick]);
+  }, [map, hasChildren, color, draggable, anchor, container, selected, highlighted, zIndex, ariaLabel, className, interactionId, isCluster, onClick]);
 
   if (hasChildren && container) {
     return createPortal(
-      <div ref={elRef} style={{ position: 'relative', cursor: onClick ? 'pointer' : 'default' }}>
+      <div ref={elRef} style={{
+        position: 'relative',
+        cursor: onClick ? 'pointer' : 'default',
+        transform: 'scale(var(--vworld-marker-scale, 1))',
+        transformOrigin: ANCHOR_ORIGINS[anchor ?? 'center'],
+      }}>
         {children}
         {isHovered && (title || description || imageUrl) && (
           <div style={TOOLTIP_STYLE}>

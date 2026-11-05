@@ -47,7 +47,7 @@ Draft PR만 유지하며 두 독립 적대 리뷰, 정확 SHA CI 및 ready/merge
 - 루트 npm run typecheck/build/lint/test 통과. lint는 기존 web 경고 13개, test는 기존 RN 21개다.
 - npm run test:e2e -w apps/web-example -- --config playwright.marker.config.ts: 11개 통과.
 - 위 회귀 검사를 별도 tarball 소비 프로젝트에서 반복해 11개 통과했다. workspace MapLibre 6.9.0, 소비 프로젝트 MapLibre 6.16.0, Playwright 1.61.0/Chromium headless/WebGL2를 사용했다.
-- 자체 변경 보안 검토: 추가 네트워크/키/HTML 문자열 삽입/동적 코드 실행/새 의존성 없음. 생성된 tarball은 dist, package.json, README만 포함하며 소스 코드·지도 키·환경 파일을 넣지 않는다.
+- 자체 변경 보안 검토: 추가 네트워크/키/HTML 문자열 삽입/동적 코드 실행/새 의존성 없음. 생성된 tarball은 dist와 package.json만 포함하며 소스 코드·지도 키·환경 파일을 넣지 않는다.
 - 실제 수치는 [기계 판독 실측 자료](marker-scale-623-evidence.json)에 보관한다. 기본 SVG/PinMarker 소스 SHA256과 tarball SHA256도 포함한다.
 
 ## 설치 가능한 인계 산출물

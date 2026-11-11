@@ -1,10 +1,14 @@
 {
   "name": "vworld-map-rn",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "src",
+    "tsconfig.json",
+    "LICENSE",
+    "NOTICE"
   ],
   "sideEffects": false,
   "scripts": {
@@ -17,7 +21,7 @@
     "prepack": "npm run build"
   },
   "dependencies": {
-    "vworld-map-core": "^1.0.0"
+    "vworld-map-core": "1.0.1"
   },
   "peerDependencies": {
     "@maplibre/maplibre-react-native": "^11.0.0",
@@ -39,5 +43,11 @@
     "jest": "^30.4.2",
     "react-test-renderer": "^19.2.3",
     "typescript": "^5.0.0"
+  },
+  "license": "GPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/digitie/maplibre-vworld-react.git",
+    "directory": "packages/vworld-map-rn"
   }
 }

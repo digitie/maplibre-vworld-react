@@ -13,7 +13,8 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "e2e": "turbo run test:e2e",
-    "clean": "turbo run clean"
+    "clean": "turbo run clean",
+    "check:package-notices": "node scripts/check-package-notices.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

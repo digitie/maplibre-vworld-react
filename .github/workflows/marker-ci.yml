@@ -76,13 +76,16 @@ jobs:
       - name: Lint
         run: npm run lint 2>&1 | tee "$CI_ARTIFACTS/lint.log"
 
+      - name: 배포 라이선스·원 소스 동봉
+        run: npm run check:package-notices
+
       - name: 기존 테스트 21개
         run: npm run test 2>&1 | tee "$CI_ARTIFACTS/test.log"
 
       - name: Lockfile Playwright의 Chromium 설치
         run: npm exec -- playwright install --with-deps chromium
 
-      - name: 빈 스타일 Chromium 마커 회귀 17개
+      - name: 빈 스타일 Chromium 마커17·명시 스타일2 회귀
         run: |
           npm run test:e2e -w apps/web-example --             --config playwright.marker.config.ts --timeout=60000             --output "$CI_ARTIFACTS/marker-results"             2>&1 | tee "$CI_ARTIFACTS/marker-browser.log"
 
@@ -107,10 +110,13 @@ jobs:
             dependencies: {
               'vworld-map-core': `file:${packed('core')}`,
               'vworld-map-web': `file:${packed('web')}`,
-              'maplibre-gl': '6.16.0', react: '19.2.7', 'react-dom': '19.2.7',
+              'maplibre-gl': '6.17.0', react: '19.3.1', 'react-dom': '19.3.1',
             },
           }, null, 2));
           copyFileSync(join(repo, 'apps/web-example/src/marker-regression.tsx'), join(consumer, 'fixture.tsx'));
+          copyFileSync(join(repo, 'apps/web-example/src/map-style-regression.tsx'), join(consumer, 'map-style-fixture.tsx'));
+          writeFileSync(join(consumer, 'map-style-regression.html'),
+            readFileSync('apps/web-example/map-style-regression.html', 'utf8').replace('/src/map-style-regression.tsx', '/map-style-fixture.tsx'));
           writeFileSync(join(consumer, 'marker-regression.html'),
             readFileSync('apps/web-example/marker-regression.html', 'utf8').replace('/src/marker-regression.tsx', '/fixture.tsx'));
           writeFileSync(join(consumer, 'vite.config.mjs'), `
@@ -134,7 +140,7 @@ jobs:
             };`);
           JS
 
-      - name: Tarball 소비 설치 및 동일 Chromium 회귀 17개
+      - name: Tarball 소비 설치 및 동일 Chromium 회귀19개
         run: |
           npm install --prefix "$CONSUMER_DIR" --ignore-scripts --engine-strict 2>&1 | tee "$CI_ARTIFACTS/consumer-install.log"
           cp "$CONSUMER_DIR/package-lock.json" "$CI_ARTIFACTS/consumer-package-lock.json"

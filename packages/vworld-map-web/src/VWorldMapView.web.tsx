@@ -51,9 +51,13 @@ export interface MapInteractionContext {
 export interface VWorldMapViewProps {
   /**
    * VWorld API Key. If empty or whitespace-only, {@link VWorldMapViewProps.fallback}
-   * is rendered instead of mounting MapLibre.
+   * is rendered instead of mounting MapLibre unless mapStyle is provided.
    */
   apiKey: string;
+  /** 명시한 MapLibre 스타일은 VWorld 키 없이도 로컬 geometry·마커를 표시한다.
+   * 객체 스타일은 호출자가 안정적인 참조로 전달한다. 생략하면 기존 VWorld 키 검증을 유지한다.
+   */
+  mapStyle?: maplibregl.StyleSpecification | string;
   /**
    * VWorld layer to render.
    * @default 'Base'
@@ -275,6 +279,7 @@ function applyFallbackToStyle(
  */
 export const VWorldMapView: React.FC<VWorldMapViewProps> = ({
   apiKey,
+  mapStyle,
   layerType = 'Base',
   center = [127.024612, 37.5326],
   zoom = 12,
@@ -318,7 +323,7 @@ export const VWorldMapView: React.FC<VWorldMapViewProps> = ({
   const [mapLoadedForEffects, setMapLoadedForEffects] = useState(false);
   const lastCameraRef = useRef<CameraSnapshot>({ center, zoom, pitch, bearing });
   const pendingCameraRef = useRef<CameraSnapshot | null>(null);
-  const appliedStyleRef = useRef({ apiKey, layerType });
+  const appliedStyleRef = useRef({ apiKey, layerType, mapStyle });
 
   // Stable pass-through callbacks: handler identity never changes, but the
   // latest version is always invoked.
@@ -335,14 +340,15 @@ export const VWorldMapView: React.FC<VWorldMapViewProps> = ({
   });
 
   const hasApiKey = typeof apiKey === 'string' && apiKey.trim().length > 0;
-  const shouldMountMap = hasApiKey && initError === null && shouldMountLazy;
+  const shouldMountMap = (hasApiKey || mapStyle !== undefined) && initError === null && shouldMountLazy;
 
-  const prevStyleKeyRef = useRef({ apiKey, layerType });
+  const prevStyleKeyRef = useRef({ apiKey, layerType, mapStyle });
   if (
     prevStyleKeyRef.current.apiKey !== apiKey ||
-    prevStyleKeyRef.current.layerType !== layerType
+    prevStyleKeyRef.current.layerType !== layerType ||
+    prevStyleKeyRef.current.mapStyle !== mapStyle
   ) {
-    prevStyleKeyRef.current = { apiKey, layerType };
+    prevStyleKeyRef.current = { apiKey, layerType, mapStyle };
     setInitError(null);
   }
 
@@ -417,7 +423,7 @@ export const VWorldMapView: React.FC<VWorldMapViewProps> = ({
     if (!shouldMountMap) return;
     if (!containerRef.current) return;
 
-    const effectiveMaxZoom = Math.min(maxZoom, getVWorldMaxZoom(layerType));
+    const effectiveMaxZoom = mapStyle !== undefined ? maxZoom : Math.min(maxZoom, getVWorldMaxZoom(layerType));
 
     // Initialize the camera from cameraTarget / bbox when provided so a map
     // configured only with those does not start at the default Seoul center
@@ -434,8 +440,8 @@ export const VWorldMapView: React.FC<VWorldMapViewProps> = ({
 
     let map: MapLibreMap;
     try {
-      let style = getVWorldStyle(apiKey, layerType);
-      if (unsupportedTileFallback) {
+      let style = mapStyle ?? getVWorldStyle(apiKey, layerType);
+      if (mapStyle === undefined && unsupportedTileFallback && typeof style !== "string") {
         style = applyFallbackToStyle(style, unsupportedTileFallback, mapId);
       }
       map = new maplibregl.Map({
@@ -456,7 +462,7 @@ export const VWorldMapView: React.FC<VWorldMapViewProps> = ({
 
     // eslint-disable-next-line react-doctor/no-adjust-state-on-prop-change
     setMapLoadedForEffects(false);
-    appliedStyleRef.current = { apiKey, layerType };
+    appliedStyleRef.current = { apiKey, layerType, mapStyle };
     // Treat the constructor camera as already-applied so the post-load camera
     // effect does not detect a phantom diff and re-animate to the same target.
     lastCameraRef.current = initialCamera;
@@ -591,18 +597,19 @@ export const VWorldMapView: React.FC<VWorldMapViewProps> = ({
     if (!mapLoadedForEffects) return;
     if (
       appliedStyleRef.current.apiKey === apiKey &&
-      appliedStyleRef.current.layerType === layerType
+      appliedStyleRef.current.layerType === layerType &&
+      appliedStyleRef.current.mapStyle === mapStyle
     ) {
       return;
     }
     
-    let style = getVWorldStyle(apiKey, layerType);
-    if (unsupportedTileFallback) {
+    let style = mapStyle ?? getVWorldStyle(apiKey, layerType);
+    if (mapStyle === undefined && unsupportedTileFallback && typeof style !== "string") {
       style = applyFallbackToStyle(style, unsupportedTileFallback, mapId);
     }
     map.setStyle(style);
-    appliedStyleRef.current = { apiKey, layerType };
-  }, [apiKey, layerType, mapLoadedForEffects, store, mapId, unsupportedTileFallback]);
+    appliedStyleRef.current = { apiKey, layerType, mapStyle };
+  }, [apiKey, layerType, mapStyle, mapLoadedForEffects, store, mapId, unsupportedTileFallback]);
 
   const cameraOptionsRef = useRef({ animateCameraChanges, flyToOptions, cameraTarget, cameraTransition, bbox });
   useLayoutEffect(() => {
@@ -692,11 +699,11 @@ export const VWorldMapView: React.FC<VWorldMapViewProps> = ({
     const map = store.getSnapshot().map;
     if (!map) return;
     map.setMinZoom(minZoom);
-    map.setMaxZoom(Math.min(maxZoom, getVWorldMaxZoom(layerType)));
+    map.setMaxZoom(mapStyle !== undefined ? maxZoom : Math.min(maxZoom, getVWorldMaxZoom(layerType)));
     map.setMaxBounds(maxBounds);
-  }, [minZoom, maxZoom, layerType, maxBounds, store]);
+  }, [minZoom, maxZoom, layerType, mapStyle, maxBounds, store]);
 
-  const fallbackInfo: VWorldMapFallbackInfo | null = !hasApiKey
+  const fallbackInfo: VWorldMapFallbackInfo | null = !hasApiKey && mapStyle === undefined
     ? { reason: 'missing-api-key' }
     : initError
       ? { reason: 'map-init-error', error: initError }

@@ -1,0 +1,5 @@
+프로젝트: maplibre-vworld-react / vworld-map-web
+라이선스: GPL-3.0-only (GNU GPL version 3)
+원 코드·빌드 수정: https://github.com/digitie/maplibre-vworld-react/tree/7402214b9d4829f1f73f80ac29f68d22e2809254/packages/vworld-map-web
+원본 TypeScript 소스와 tsconfig.json을 이 패키지에 함께 동봉합니다.
+저작권 고지와 이력은 동봉 소스 및 원 저장소를 따릅니다. 이 포장은 원본의 이용·수정·재배포 조건을 바꾸지 않습니다.

@@ -6,6 +6,7 @@ import {
   getVWorldMaxZoom as coreGetVWorldMaxZoom,
   type VWorldMapType,
 } from 'vworld-map-core';
+import { parseVWorldTileRequest } from './vworldTileRequest.js';
 
 let vworldProtocolRegistered = false;
 const fallbackCache = new Map<string, ArrayBuffer>();
@@ -57,16 +58,7 @@ async function getFallbackImageData(imageUrl: string | null, label: string | nul
 }
 
 const vworldProtocolHandler: AddProtocolAction = async (params, abortController) => {
-  const urlObj = new URL(params.url);
-  const fallbackUrl = urlObj.searchParams.get('fallback');
-  const label = urlObj.searchParams.get('label');
-  const mapId = urlObj.searchParams.get('mapId');
-  
-  urlObj.protocol = 'https:';
-  urlObj.searchParams.delete('fallback');
-  urlObj.searchParams.delete('label');
-  urlObj.searchParams.delete('mapId');
-  const realUrl = urlObj.toString();
+  const { url: realUrl, fallbackUrl, label, mapId } = parseVWorldTileRequest(params.url);
 
   try {
     const response = await fetch(realUrl, { signal: abortController.signal });

@@ -1,10 +1,23 @@
-import React from 'react';
+import React, { type ComponentProps } from 'react';
 import { View } from 'react-native';
 import { Marker as MapLibreMarker } from '@maplibre/maplibre-react-native';
+
+type NativeMarkerProps = ComponentProps<typeof MapLibreMarker>;
+
+/** Which part of the marker sits on `lngLat` (native default: `center`). */
+export type MarkerAnchor = NonNullable<NativeMarkerProps['anchor']>;
 
 export interface MarkerProps {
   id: string;
   lngLat: [number, number];
+  /**
+   * Which part of the marker is placed on `lngLat`. Card / bubble markers use
+   * `bottom` so they sit above the point instead of covering it (parity with
+   * the web `anchor` option). Omit for the native default (`center`).
+   */
+  anchor?: MarkerAnchor;
+  /** Pixel offset `[x, y]` from the anchor (negative y moves the marker up). */
+  offset?: NativeMarkerProps['offset'];
   /** Fired when the marker is pressed. */
   onPress?: () => void;
   /**
@@ -28,6 +41,8 @@ export interface MarkerProps {
 export const Marker: React.FC<MarkerProps> = ({
   id,
   lngLat,
+  anchor,
+  offset,
   onPress,
   onClick,
   color = 'red',
@@ -59,6 +74,8 @@ export const Marker: React.FC<MarkerProps> = ({
     <MapLibreMarker
       id={id}
       lngLat={lngLat}
+      anchor={anchor}
+      offset={offset}
       onPress={handlePress}
       style={zIndex !== undefined ? { zIndex } : undefined}
       accessible={ariaLabel ? true : undefined}

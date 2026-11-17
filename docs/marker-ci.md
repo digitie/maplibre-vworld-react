@@ -51,7 +51,7 @@ artifact 이름은 marker-ci-<검증 HEAD SHA>이며 성공/실패와 무관하�
 - provenance.txt: HEAD SHA, Node/npm, packages/apps 트리, lockfile 및 Marker.tsx SHA256.
 - npm-ci.log, core-bootstrap.log, typecheck.log, build.log, lint.log, test.log.
 - marker-browser.log 및 marker-results/: 기존 11개와 P2 6개 결과, SVG 끝점 실측과 화면.
-- pack-core.json, pack-web.json, tarballs.sha256 및 tarballs/: 해당 HEAD의 설치 tarball.
+- pack-core.json, pack-web.json, pack-rn.json, tarballs.sha256 및 tarballs/: 해당 HEAD의 설치 tarball(rn은 2026-11-17부터).
 - consumer-install.log, consumer-package-lock.json, consumer-tree.log.
 - consumer-browser.log 및 consumer-results/: 설치된 tarball의 동일 브라우저 회귀 결과.
 

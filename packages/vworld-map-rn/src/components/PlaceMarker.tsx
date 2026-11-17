@@ -13,6 +13,9 @@ export interface PlaceMarkerProps {
   onPress?: () => void;
 }
 
+// Stable reference so the native marker does not see a new offset each render.
+const PLACE_OFFSET: [number, number] = [0, -8];
+
 /** Place card marker. Native equivalent of the web `PlaceMarker`. */
 export const PlaceMarker: React.FC<PlaceMarkerProps> = ({
   id,
@@ -25,7 +28,9 @@ export const PlaceMarker: React.FC<PlaceMarkerProps> = ({
   onPress,
 }) => {
   return (
-    <Marker id={id} lngLat={lngLat} selected={selected} onPress={onPress}>
+    // Like web, the card sits above the coordinate (bottom anchor, small lift)
+    // instead of being centered on — and covering — the place it describes.
+    <Marker id={id} lngLat={lngLat} anchor="bottom" offset={PLACE_OFFSET} selected={selected} onPress={onPress}>
       <View style={styles.card}>
         {photoUrl ? <Image source={{ uri: photoUrl }} style={styles.photo} /> : null}
         <View style={styles.body}>

@@ -17,6 +17,8 @@ export interface PopupProps {
   maxWidth?: number;
 }
 
+const POPUP_OFFSET: [number, number] = [0, -8];
+
 /**
  * A simple popup bubble anchored at a coordinate. Native equivalent of the web
  * `Popup` — renders arbitrary children in a card via the RN Marker.
@@ -30,7 +32,8 @@ export const Popup: React.FC<PopupProps> = ({
   maxWidth = 280,
 }) => {
   return (
-    <Marker id={`${id}-popup`} lngLat={lngLat}>
+    // The bubble sits above the coordinate like the web popup, not centered on it.
+    <Marker id={`${id}-popup`} lngLat={lngLat} anchor="bottom" offset={POPUP_OFFSET}>
       <View style={[styles.bubble, { maxWidth }]}>
         {showCloseButton ? (
           <TouchableOpacity

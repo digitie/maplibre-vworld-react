@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useMemo, forwardRef, useImperativeHandle } from 'react';
+import React, { useRef, useCallback, useMemo, forwardRef, useImperativeHandle, type ComponentProps } from 'react';
 import { View, StyleSheet } from 'react-native';
 import type { NativeSyntheticEvent } from 'react-native';
 import {
@@ -31,8 +31,23 @@ export interface VWorldMapHandle {
   zoomTo(zoom: number, durationMs?: number): void;
 }
 
-export const VWorldMapView = forwardRef<VWorldMapHandle, VWorldMapViewProps>(({
+/** Style accepted by the native map: a MapLibre style object or a style URL. */
+export type VWorldNativeMapStyle = ComponentProps<typeof Map>['mapStyle'];
+
+/** RN props: the shared core contract plus native-only additions. */
+export interface VWorldMapViewNativeProps extends VWorldMapViewProps {
+  /**
+   * Explicit MapLibre style (object or URL). When given it replaces the VWorld
+   * style, so local geometry / markers render without a VWorld key (parity with
+   * vworld-map-web #32), `tileUrlTransform` is not applied and `maxZoom` is not
+   * clamped to the VWorld layer max. Pass a stable reference for object styles.
+   */
+  mapStyle?: VWorldNativeMapStyle;
+}
+
+export const VWorldMapView = forwardRef<VWorldMapHandle, VWorldMapViewNativeProps>(({
   apiKey,
+  mapStyle: explicitMapStyle,
   initialCenter = [126.9780, 37.5665], // Seoul City Hall default
   initialZoom = 14,
   minZoom,
@@ -62,6 +77,18 @@ export const VWorldMapView = forwardRef<VWorldMapHandle, VWorldMapViewProps>(({
       }),
     fitBounds: ({ ne, sw }, options) =>
       cameraRef.current?.fitBounds([sw[0], sw[1], ne[0], ne[1]], {
+        // paddingPx was accepted but never forwarded, so fitted pins ended up
+        // under overlays; the native camera takes per-side view padding.
+        ...(options?.paddingPx !== undefined
+          ? {
+              padding: {
+                top: options.paddingPx,
+                right: options.paddingPx,
+                bottom: options.paddingPx,
+                left: options.paddingPx,
+              },
+            }
+          : {}),
         ...(options?.durationMs !== undefined ? { duration: options.durationMs } : {}),
       }),
     zoomTo: (zoom, durationMs) =>
@@ -69,6 +96,7 @@ export const VWorldMapView = forwardRef<VWorldMapHandle, VWorldMapViewProps>(({
   }), []);
 
   const mapStyle = useMemo(() => {
+    if (explicitMapStyle !== undefined) return explicitMapStyle;
     const style = createVWorldStyle(apiKey, mapType);
     if (!tileUrlTransform) return style;
     // Let the app rewrite tile URLs (proxy / token injection) so the raw key
@@ -82,10 +110,13 @@ export const VWorldMapView = forwardRef<VWorldMapHandle, VWorldMapViewProps>(({
         ]),
       ),
     };
-  }, [apiKey, mapType, tileUrlTransform]);
+  }, [apiKey, mapType, tileUrlTransform, explicitMapStyle]);
 
   const layerMaxZoom = LAYER_PRESETS[mapType]?.maxZoom || 19;
-  const maxZoomLevel = maxZoom !== undefined ? Math.min(maxZoom, layerMaxZoom) : layerMaxZoom;
+  // An explicit style is not a VWorld layer, so the VWorld layer max does not apply.
+  const maxZoomLevel = explicitMapStyle !== undefined
+    ? maxZoom
+    : maxZoom !== undefined ? Math.min(maxZoom, layerMaxZoom) : layerMaxZoom;
   const maxBoundsFlat: [number, number, number, number] | undefined = maxBounds
     ? [maxBounds.sw[0], maxBounds.sw[1], maxBounds.ne[0], maxBounds.ne[1]]
     : undefined;

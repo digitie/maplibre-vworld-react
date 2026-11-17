@@ -94,6 +94,8 @@ jobs:
           mkdir -p "$CI_ARTIFACTS/tarballs"
           npm pack -w packages/vworld-map-core --pack-destination "$CI_ARTIFACTS/tarballs" --json > "$CI_ARTIFACTS/pack-core.json"
           npm pack -w packages/vworld-map-web --pack-destination "$CI_ARTIFACTS/tarballs" --json > "$CI_ARTIFACTS/pack-web.json"
+          # RN도 같은 HEAD에서 pack해 소비자(Pinvi 모바일)가 vendor할 tarball을 남긴다.
+          npm pack -w packages/vworld-map-rn --pack-destination "$CI_ARTIFACTS/tarballs" --json > "$CI_ARTIFACTS/pack-rn.json"
           sha256sum "$CI_ARTIFACTS"/tarballs/*.tgz | tee "$CI_ARTIFACTS/tarballs.sha256"
           node --input-type=module <<'JS'
           import { mkdirSync, readFileSync, writeFileSync, copyFileSync } from 'node:fs';

@@ -18,6 +18,9 @@ import {
 } from 'vworld-map-core';
 import { Marker as VWorldMarker } from './components/Marker';
 
+/** Camera padding in px: one value for every side, or per side (missing sides are 0). */
+export type VWorldViewPadding = number | { top?: number; right?: number; bottom?: number; left?: number };
+
 /** Imperative handle for programmatic camera control via a ref. */
 export interface VWorldMapHandle {
   /** Animate to a center (and optional zoom). */
@@ -25,7 +28,7 @@ export interface VWorldMapHandle {
   /** Fit the camera to bounds. */
   fitBounds(
     bounds: { ne: [number, number]; sw: [number, number] },
-    options?: { paddingPx?: number; durationMs?: number },
+    options?: { paddingPx?: VWorldViewPadding; durationMs?: number },
   ): void;
   /** Animate to a zoom level. */
   zoomTo(zoom: number, durationMs?: number): void;
@@ -43,6 +46,18 @@ export interface VWorldMapViewNativeProps extends VWorldMapViewProps {
    * clamped to the VWorld layer max. Pass a stable reference for object styles.
    */
   mapStyle?: VWorldNativeMapStyle;
+}
+
+function toViewPadding(padding: VWorldViewPadding) {
+  if (typeof padding === 'number') {
+    return { top: padding, right: padding, bottom: padding, left: padding };
+  }
+  return {
+    top: padding.top ?? 0,
+    right: padding.right ?? 0,
+    bottom: padding.bottom ?? 0,
+    left: padding.left ?? 0,
+  };
 }
 
 export const VWorldMapView = forwardRef<VWorldMapHandle, VWorldMapViewNativeProps>(({
@@ -79,16 +94,7 @@ export const VWorldMapView = forwardRef<VWorldMapHandle, VWorldMapViewNativeProp
       cameraRef.current?.fitBounds([sw[0], sw[1], ne[0], ne[1]], {
         // paddingPx was accepted but never forwarded, so fitted pins ended up
         // under overlays; the native camera takes per-side view padding.
-        ...(options?.paddingPx !== undefined
-          ? {
-              padding: {
-                top: options.paddingPx,
-                right: options.paddingPx,
-                bottom: options.paddingPx,
-                left: options.paddingPx,
-              },
-            }
-          : {}),
+        ...(options?.paddingPx !== undefined ? { padding: toViewPadding(options.paddingPx) } : {}),
         ...(options?.durationMs !== undefined ? { duration: options.durationMs } : {}),
       }),
     zoomTo: (zoom, durationMs) =>

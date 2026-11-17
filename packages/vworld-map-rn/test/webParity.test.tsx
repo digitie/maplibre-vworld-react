@@ -40,6 +40,15 @@ describe('fitBounds padding', () => {
     });
   });
 
+  it('accepts per-side padding (e.g. a bottom sheet) and fills missing sides with 0', () => {
+    const ref = React.createRef<VWorldMapHandle>();
+    create(<VWorldMapView ref={ref} apiKey="k" />);
+    act(() => ref.current!.fitBounds({ sw: [126, 36], ne: [128, 38] }, { paddingPx: { top: 96, bottom: 320 } }));
+    expect(__cameraSpies.fitBounds).toHaveBeenCalledWith([126, 36, 128, 38], {
+      padding: { top: 96, right: 0, bottom: 320, left: 0 },
+    });
+  });
+
   it('sends no padding when none is requested (unchanged default)', () => {
     const ref = React.createRef<VWorldMapHandle>();
     create(<VWorldMapView ref={ref} apiKey="k" />);
